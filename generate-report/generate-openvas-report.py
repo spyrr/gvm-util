@@ -16,6 +16,10 @@ ZF_TMP_PATH = f'{PWD}/_x_tmp'
 
 
 def save(filename, df):
+    """Save DataFrame to the file
+    """
+
+    # Write temp excel file
     with pd.ExcelWriter(TMP_FILENAME, engine='openpyxl') as wt:
         wb = openpyxl.load_workbook(TEMPLATE_FILENAME, keep_vba=True)
         wt.book = wb
@@ -27,10 +31,12 @@ def save(filename, df):
         )
         wt.save()
 
-
+    # Decompress temp file that we stored above.
     with zipfile.ZipFile(TMP_FILENAME, 'r') as zf:
         zf.extractall(ZF_TMP_PATH)
 
+    # Decompress the template.xlsm file to temp directory, not template dir
+    # This work was needed to make VB macro work without error.
     with zipfile.ZipFile(TEMPLATE_FILENAME, 'r') as zf:
         extracts = (
             '[Content_Types].xml',
@@ -41,18 +47,21 @@ def save(filename, df):
         for fn in extracts:
             zf.extract(fn, path=ZF_TMP_PATH)
 
+    # Compress temp dir to the filename (output)
     with zipfile.ZipFile(filename, 'w') as zf:
         os.chdir(ZF_TMP_PATH)
         for root, dirs, files in os.walk('./'):
             for file in files:
                 zf.write(os.path.join(root, file))
 
-    #clean
+    # Clean working dirs
     rmtree(ZF_TMP_PATH)
     os.remove(f'{PWD}/tmp.xlsx')
 
 
 def load_csvfiles():
+    """Load csv files and return the concatenated DataFrame
+    """
     os.chdir(sys.argv[1])
     files = list(filter(lambda x: x.find('.csv') != -1, os.listdir()))
 
@@ -96,13 +105,3 @@ if __name__ == '__main__':
         print(f'ex) ./{pname} data  # data is a name of directory')
         sys.exit(-1)
 
-
-# Backup Code
-# with pd.ExcelWriter(f'{PWD}/test.xlsm', engine='openpyxl') as wt:
-#     wb = openpyxl.load_workbook(TEMPLATE_FILENAME, keep_vba=True)
-#     wt.book = wb
-#     wt.sheets = dict((ws.title, ws) for ws in wb.worksheets)
-#     wt.vba_archive = wb.vba_archive
-
-#     sorted.to_excel(wt, sheet_name=DATA_SHEET, index=False, header=False, startrow=2)
-#     wt.save()

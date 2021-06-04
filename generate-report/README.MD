@@ -1,4 +1,4 @@
-This merges CSV files to a xlsm file from template.xlsm.
+This tool makes CSV files to one excel file and generates a xlsm file based on template.xlsm file.
 
 - CSV files: downloaded results from OpenVAS(GVM) results
 
